@@ -20,13 +20,9 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(2, 3, 5);
 camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-const directionalLight1 = new THREE.DirectionalLight(0xffffff, 100);
-directionalLight1.position.set(-1, 1, 1);
-scene.add(directionalLight1);
-
-const directionalLight2 = new THREE.DirectionalLight(0x4097db, 50);
-directionalLight2.position.set(1, 0, -1);
-scene.add(directionalLight2);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 100);
+directionalLight.position.set(-5, 5, 5);
+scene.add(directionalLight);
 
 const ambientLight = new THREE.AmbientLight(0x000000);
 scene.add(ambientLight);
@@ -51,6 +47,9 @@ scene.add(axesHelper);
 
 const gridHelper = new THREE.GridHelper(13, 21);
 scene.add(gridHelper);
+
+const lightHelper = new THREE.DirectionalLightHelper( directionalLight, 2 );
+scene.add( lightHelper );
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
