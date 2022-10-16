@@ -1,40 +1,76 @@
 import * as THREE from "three";
-
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-
-const camera = new THREE.PerspectiveCamera(
-  45,
-  window.innerWidth / window.innerHeight,
-  1,
-  500
-);
-camera.position.set(0, 0, 100);
-camera.lookAt(0, 0, 0);
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 const scene = new THREE.Scene();
 
-const material = new THREE.LineBasicMaterial({ color: 0x0000ff });
+const light = new THREE.SpotLight()
+light.position.set(5, 5, 5)
+scene.add(light)
 
-const points = [];
-points.push(new THREE.Vector3(-10, 0, 0));
-points.push(new THREE.Vector3(0, 10, 0));
-points.push(new THREE.Vector3(10, 0, 0));
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+);
+camera.position.z = 2;
 
-const geometry = new THREE.BufferGeometry().setFromPoints(points);
+const renderer = new THREE.WebGLRenderer();
+renderer.physicallyCorrectLights = true;
+renderer.shadowMap.enabled = true;
+renderer.outputEncoding = THREE.sRGBEncoding
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.getElementById("app").appendChild(renderer.domElement);
 
-const line = new THREE.Line(geometry, material);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
 
-scene.add(line);
+const loader = new GLTFLoader();
+loader.load(
+  "models/monkey.glb",
+  function (gltf) {
+    gltf.scene.traverse(function (child) {
+      if (child.isMesh) {
+        const m = child;
+        m.receiveShadow = true;
+        m.castShadow = true;
+      }
+      if (child.isLight) {
+        const l = child;
+        l.castShadow = true;
+        l.shadow.bias = -0.003;
+        l.shadow.mapSize.width = 2048;
+        l.shadow.mapSize.height = 2048;
+      }
+    });
+    scene.add(gltf.scene);
+  },
+  (xhr) => {
+    console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+  },
+  (error) => {
+    console.log(error);
+  }
+);
+
+window.addEventListener("resize", onWindowResize, false);
+
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  render();
+}
 
 function animate() {
-  requestAnimationFrame( animate );
+  requestAnimationFrame(animate);
+  controls.update();
+  render();
+}
 
-  line.rotation.x += 0.01;
-  line.rotation.y += 0.01;
-
-  renderer.render( scene, camera );
-};
+function render() {
+  renderer.render(scene, camera);
+}
 
 animate();
